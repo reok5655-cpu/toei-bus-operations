@@ -1,0 +1,5 @@
+export type RouteDirection = { directionId: string | null; label: string; stopList: Stop[]; tripIds: string[]; tripDestinations: Record<string, string> };
+export type Route = { routeId: string; routeShortName: string | null; routeLongName: string | null; originStop: string | null; destinationStop: string | null; stopList: Stop[]; directions: RouteDirection[] };
+export type Stop = { stopId: string; stopName: string; latitude: number | null; longitude: number | null; stopSequence: number };
+export type Vehicle = { vehicleId: string | null; tripId: string | null; routeId: string | null; latitude: number | null; longitude: number | null; bearing: number | null; speed: number | null; currentStopSequence: number | null; timestamp: number | null; nextStopId: string | null; delaySeconds: number | null; estimatedArrival: number | null; positionKind: "actual" | "estimated" | "unknown" };
+export type FeedStatus = { configured: boolean; updatedAt: string | null; generatedAt: string | null; stale: boolean; error: string | null; vehicles: Vehicle[]; source: string };
