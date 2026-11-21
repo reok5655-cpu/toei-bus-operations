@@ -102,12 +102,9 @@ export default function Home() {
                   const atOppositeStop = oppositeVehicles.filter(v => v.currentStopSequence === oppositeStop?.stopSequence);
                   const occupied = atPrimaryStop.length + atOppositeStop.length > 0;
                   return <div className={`stop-row stop-row-balanced ${occupied ? "occupied" : ""}`} key={`${stop.stopId}-${stopIndex}`}>
-                    <span className="stop-label stop-label-side">{stop.stopName}</span>
-                    <span className="stop-track">
-                      <span className="vehicle-side vehicle-side-left">{atPrimaryStop.map((v, vehicleIndex) => <span key={`${v.vehicleId}-${vehicleIndex}`}>{detail(v)}</span>)}</span>
-                      <span className="stop-dot"/>
-                      <span className="vehicle-side vehicle-side-right">{atOppositeStop.map((v, vehicleIndex) => <span key={`${v.vehicleId}-${vehicleIndex}`}>{detail(v)}</span>)}</span>
-                    </span>
+                    <span className="vehicle-side vehicle-side-left">{atPrimaryStop.map((v, vehicleIndex) => <span key={`${v.vehicleId}-${vehicleIndex}`}>{detail(v)}</span>)}</span>
+                    <span className="stop-center"><span className="stop-dot"/><span className="stop-label">{stop.stopName}</span></span>
+                    <span className="vehicle-side vehicle-side-right">{atOppositeStop.map((v, vehicleIndex) => <span key={`${v.vehicleId}-${vehicleIndex}`}>{detail(v)}</span>)}</span>
                   </div>;
                 })}</div></div>
               </div>;
@@ -122,7 +119,7 @@ export default function Home() {
         </section>
       </div>
     </main>
-    <footer className="footer"><div className="shell footer-inner"><span>データ提供: 公共交通オープンデータセンター（ODPT）</span><span>データの正確性・完全性は保証されません。</span></div></footer>
+    <footer className="footer"><div className="shell footer-inner"><span>データ提供: 公共交通オープンデータセンター（ODPT）</span><span>データの正確性・完全性は保証されません。</span><span>Ver2.0.2</span></div></footer>
     {vehicle && <div className="detail-backdrop" onClick={() => setVehicle(null)}><aside className="detail" onClick={e => e.stopPropagation()}><div className="detail-top"><span className="section-title">車両情報</span><button onClick={() => setVehicle(null)}>閉じる　×</button></div><h2>{vehicle.vehicleId ?? "車両ID不明"}</h2><div className="small-muted">現在の運行情報</div><dl className="detail-dl"><div><dt>系統</dt><dd>{selected?.routeShortName ?? vehicle.routeId ?? "不明"}</dd></div><div><dt>便ID</dt><dd>{vehicle.tripId ?? "不明"}</dd></div><div><dt>行き先</dt><dd>{destinationForVehicle(vehicle)}</dd></div><div><dt>車両位置</dt><dd>{vehicle.latitude != null ? `${vehicle.latitude.toFixed(6)}, ${vehicle.longitude?.toFixed(6)}` : "位置不明"}</dd></div><div><dt>位置の種類</dt><dd>{vehicle.positionKind === "actual" ? "実測位置" : vehicle.positionKind === "estimated" ? "推定位置" : "不明"}</dd></div><div><dt>次停留所</dt><dd>{vehicle.nextStopId ?? "不明"}</dd></div><div><dt>進行方向</dt><dd>{vehicle.bearing != null ? `${vehicle.bearing}°` : "不明"}</dd></div><div><dt>速度</dt><dd>{vehicle.speed != null ? `${(vehicle.speed * 3.6).toFixed(1)} km/h` : "不明"}</dd></div><div><dt>最終更新</dt><dd>{time(vehicle.timestamp)}</dd></div><div><dt>次の運用予測</dt><dd>{operationLoading ? "履歴を照合中…" : operationPrediction?.error ? "履歴を読み込めません" : operationPrediction?.unmappedVehicle ? "局番の所属営業所を確認できません" : operationPrediction?.candidates.length ? operationPrediction.candidates.map(candidate => { const route = routes.find(item => item.routeId === candidate.routeId); const destination = route?.directions.map(direction => direction.tripDestinations[candidate.tripId]).find(Boolean) ?? route?.destinationStop ?? "行き先不明"; const routeName = route?.routeShortName ?? candidate.routeId ?? "系統不明"; const confidence = candidate.confidence === "high" ? "高" : candidate.confidence === "medium" ? "中" : "低"; return <span className="operation-candidate" key={`${candidate.tripId}-${candidate.operationCode}`}>{candidate.operationCode} · {routeName}（{destination}） · 確度{confidence} · 実績{candidate.count}件</span>; }) : operationPrediction?.configured ? "運用履歴を蓄積中です" : "運用履歴の保存先を設定すると表示します"}</dd></div></dl><div className="notice">次便候補と運番は、蓄積した車両・便の運行履歴から推定します。ダイヤ変更や車両交換で実際と異なる場合があります。</div></aside></div>}
   </>;
 }
