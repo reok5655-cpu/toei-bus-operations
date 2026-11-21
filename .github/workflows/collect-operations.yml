@@ -1,0 +1,33 @@
+name: Collect Toei bus operations
+
+on:
+  schedule:
+    - cron: "2-59/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: collect-toei-operations
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    # Keep the scheduled job idle until ODPT and Supabase secrets are configured.
+    if: ${{ vars.OPERATIONS_COLLECTION_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ODPT_API_KEY: ${{ secrets.ODPT_API_KEY }}
+      ODPT_VEHICLE_POSITIONS_URL: ${{ secrets.ODPT_VEHICLE_POSITIONS_URL }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node scripts/collect-operations.mjs

@@ -1,0 +1,8 @@
+node_modules/
+.next/
+.next-swc-cache/
+.npm-cache/
+out/
+.env*
+!.env.example
+npm-debug.log*

@@ -52,7 +52,7 @@ TypeScriptの静的チェックは `npm.cmd run typecheck` で実行できます
 - この環境ではODPT APIキーおよびデータカタログのアカウント固有URLが与えられていないため、実API接続は未確認です。
 - 接続層はGTFS-Realtime Protocol BuffersのVehiclePositionフィードを想定します。実際のエンドポイントと利用可能なリソースはODPTアカウントのデータカタログで確認してください。
 - 方向別停留所列は各direction_idの代表便から作ります。上り/下りという方向名称が提供されない場合はGTFSの方向IDを表示します。
-- TripUpdate、ServiceAlert、到着予測、推定次運用、車両位置の路線投影は未実装です。Current Stop Sequenceだけから現在停留所を表示するため、提供事業者のstop_sequenceとGTFS便データが一致しないケースでは不正確になりえます。
+- TripUpdate、ServiceAlert、到着予測、車両位置の路線投影は未実装です。次の便・仮運番予測は、下記の履歴収集を設定した場合のみ利用できます。Current Stop Sequenceだけから現在停留所を表示するため、提供事業者のstop_sequenceとGTFS便データが一致しないケースでは不正確になりえます。
 - 稼働環境が複数プロセスの場合、キャッシュはプロセス間共有ではありません。共有キャッシュ基盤が必要になった際に差し替えてください。
 
 ## Vercelへの公開
@@ -65,3 +65,37 @@ TypeScriptの静的チェックは `npm.cmd run typecheck` で実行できます
 ## 出典・利用条件
 
 データ出典は公共交通オープンデータセンター（ODPT）です。[開発者ガイドライン](https://developer.odpt.org/terms/data_basic_use_guideline.html)に従い、動的データの生成時刻、更新頻度、有効期間を確認して運用してください。GTFS-RTフィードの生成時刻はFeedHeader.timestampから表示します。ライセンスと事業者別条件はデータカタログの各データ項目も確認してください。
+
+## 次の便・運番予測（履歴収集）
+
+次の便と仮運番は、GTFS-Realtimeで観測した車両ごとの便の並びを蓄積して推定します。GTFS-JPに運用ブロックがない場合でも履歴から候補を作れますが、開始直後は履歴がないため候補が出ません。日ごとの運行パターンを確定して運番を付けるのは翌朝4時台です。予測は過去実績に基づく目安です。
+
+仮運番の形式は `営業所記号-グループ小文字-番号`（例: `A-a-001`）です。車両ID（例: `A608`）は車庫別一覧の局番と照合し、現在の配置先の営業所記号を取得します。局番を所属記号と導入時期記号まで含めて `P-A608` と書く場合、その配置先はP（巣鴨）です。対応表は[都営バス資料館の車庫別車両一覧](https://toeibus.com/archives/17807)から作成してSupabaseに保存し、24時間ごとにページを再取得します。資料館に掲載されている配置情報は2026年5月1日現在のため、実際の異動が資料館側に反映されるまで差が出る場合があります。仮運番はサイト独自の推定値で、都営バス公式の運番との一致を保証しません。
+
+### Supabaseの用意
+
+1. SupabaseでFreeプランのプロジェクトを作成します。
+2. プロジェクトのSQL Editorで `supabase/migrations/202611180001_vehicle_operations.sql` の全文を実行します。
+3. Project SettingsのAPI画面からProject URLと`service_role`キーを取得します。`service_role`キーは管理者用の秘密情報なので、公開場所やブラウザー側の変数に入れないでください。
+
+### GitHub Actionsの定期収集
+
+GitHubリポジトリで Settings → Secrets and variables → Actions → New repository secret を選び、次の4つを登録します。
+
+- `ODPT_API_KEY`: ODPT APIキー
+- `ODPT_VEHICLE_POSITIONS_URL`: ODPTカタログに表示されたVehiclePositionのURL
+- `SUPABASE_URL`: Supabase Project URL
+- `SUPABASE_SERVICE_ROLE_KEY`: Supabaseのservice_roleキー
+
+`.github/workflows/collect-operations.yml` は、必要な設定を入れるまで定期実行を停止しています。ODPT APIキー・VehiclePosition URL・Supabase URL・Supabase service_roleキーの4つをRepository secretsに登録し、Actions Variablesに `OPERATIONS_COLLECTION_ENABLED=true` を追加すると5分おきの収集が始まります。設定後はActionsタブで `Collect Toei bus operations` を開き、`Run workflow` から初回実行もできます。GitHubのスケジュール実行は混雑時に遅れることがあります。Publicリポジトリの無料枠やGitHubの現行条件は利用状況により変わるため、Actionsの使用量を確認してください。
+
+### Vercelの設定
+
+VercelのProject Settings → Environment Variablesに以下を追加し、Productionを選択して保存後に再デプロイします。
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+既存のODPT環境変数はそのまま使います。Supabaseキーを`NEXT_PUBLIC_`付きで登録しないでください。サイトの車両詳細に履歴からの次便候補と仮運番が表示されます。運行履歴が貯まるまで、予測候補が表示されない期間があります。
+
+Supabase無料プロジェクトは利用状況に応じて一時停止される場合があります。停止すると収集と予測表示が止まるため、Supabaseの状態を確認してください。
