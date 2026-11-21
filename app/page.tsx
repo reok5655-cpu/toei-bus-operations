@@ -102,9 +102,12 @@ export default function Home() {
                   const atOppositeStop = oppositeVehicles.filter(v => v.currentStopSequence === oppositeStop?.stopSequence);
                   const occupied = atPrimaryStop.length + atOppositeStop.length > 0;
                   return <div className={`stop-row stop-row-balanced ${occupied ? "occupied" : ""}`} key={`${stop.stopId}-${stopIndex}`}>
-                    <span className="vehicle-side vehicle-side-left">{atPrimaryStop.map((v, vehicleIndex) => <span key={`${v.vehicleId}-${vehicleIndex}`}>{detail(v)}</span>)}</span>
-                    <span className="stop-center"><span className="stop-dot"/><span className="stop-label">{stop.stopName}</span></span>
-                    <span className="vehicle-side vehicle-side-right">{atOppositeStop.map((v, vehicleIndex) => <span key={`${v.vehicleId}-${vehicleIndex}`}>{detail(v)}</span>)}</span>
+                    <span className="stop-label stop-label-side">{stop.stopName}</span>
+                    <span className="stop-track">
+                      <span className="vehicle-side vehicle-side-left">{atPrimaryStop.map((v, vehicleIndex) => <span key={`${v.vehicleId}-${vehicleIndex}`}>{detail(v)}</span>)}</span>
+                      <span className="stop-dot"/>
+                      <span className="vehicle-side vehicle-side-right">{atOppositeStop.map((v, vehicleIndex) => <span key={`${v.vehicleId}-${vehicleIndex}`}>{detail(v)}</span>)}</span>
+                    </span>
                   </div>;
                 })}</div></div>
               </div>;

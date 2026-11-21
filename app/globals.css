@@ -84,3 +84,32 @@
   .stop-row-balanced .vehicle-chip{padding-inline:4px;font-size:9px}
   .vehicle-stats{grid-template-columns:1fr}
 }
+
+/* Paired direction chart: stop names on the left, shared center track, buses on either side. */
+.diagram-balanced{--stop-label-width:clamp(82px,25%,150px);padding:3px 0}
+.diagram-balanced:before{display:none}
+.direction-paired{grid-column:1 / -1}
+.direction-grid,.direction,.direction-inner,.diagram-balanced{width:100%;min-width:0;max-width:100%}
+.direction-title>span:last-child{flex:0 0 auto;white-space:nowrap}
+.stop-row-balanced{display:grid;grid-template-columns:minmax(0,var(--stop-label-width)) minmax(0,1fr);align-items:center;gap:0;min-height:54px;min-width:0}
+.stop-row-balanced .stop-label-side{min-width:0;max-width:none;padding:0 8px 0 0;text-align:left;line-height:1.3;overflow-wrap:anywhere}
+.stop-track{position:relative;display:block;width:100%;height:54px;min-width:0}
+.stop-track:before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;transform:translateY(-50%);background:#d9e1e4;z-index:0}
+.stop-track:after{content:"";position:absolute;left:50%;top:0;bottom:0;width:3px;transform:translateX(-50%);border-radius:3px;background:#2383cf;z-index:1}
+.stop-row-balanced .stop-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:13px;height:13px;min-width:13px;margin:0;background:#2383cf;border:2px solid #2383cf;z-index:2}
+.stop-row-balanced.occupied .stop-dot{background:#2383cf;border-color:#2383cf;box-shadow:none}
+.vehicle-side{position:absolute;top:50%;display:flex;flex-wrap:wrap;align-items:center;gap:4px;min-width:0;max-width:calc(50% - 12px);transform:translateY(-50%);z-index:3}
+.vehicle-side-left{right:calc(50% + 10px);justify-content:flex-end}
+.vehicle-side-right{left:calc(50% + 10px);justify-content:flex-start}
+.stop-row-balanced .vehicle-chip{margin:0;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:640px){
+  .direction-grid{display:block;width:100%}
+  .direction,.direction-inner,.diagram-balanced{width:100%;max-width:100%;overflow:hidden}
+  .diagram-balanced{--stop-label-width:clamp(76px,27vw,112px)}
+  .stop-row-balanced,.stop-track{min-height:52px;height:52px}
+  .stop-row-balanced .stop-label-side{font-size:10px;padding-right:5px}
+  .vehicle-side{gap:2px;max-width:calc(50% - 9px)}
+  .vehicle-side-left{right:calc(50% + 8px)}
+  .vehicle-side-right{left:calc(50% + 8px)}
+  .stop-row-balanced .vehicle-chip{min-height:30px;padding:4px 5px;font-size:9px}
+}
